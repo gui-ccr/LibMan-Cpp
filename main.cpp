@@ -170,11 +170,11 @@ public:
         std::cout << "---- Status ----";
         if (estaEmprestado)
         {
-            std::cout << "Emprestado" << std::endl;
+            std::cout << endl << "Emprestado" << std::endl;
         }
         else
         {
-            std::cout << "Disponivel" << std::endl;
+            std::cout << endl << "Disponivel" << std::endl;
         }
     }
 };
@@ -211,11 +211,11 @@ public:
         std::cout << "---- Status ----";
         if (estaEmprestado)
         {
-            std::cout << "Emprestado" << std::endl;
+            std::cout << endl << "Emprestado" << std::endl;
         }
         else
         {
-            std::cout << "Disponivel" << std::endl;
+            std::cout << endl << "Disponivel" << std::endl;
         }
     }
 };
@@ -227,7 +227,7 @@ class Biblioteca
 private:
     // O coracao do polimorfismo: um vetor de ponteiros da classe base.
     // Ele pode guardar enderecos de Livros, Filmes ou qualquer outra classe que herde de ItemDeMidia.
-    vector<ItemDeMidia *> colecao;
+    vector<ItemDeMidia*> colecao;
 
 public:
     // Construtor da Biblioteca.
