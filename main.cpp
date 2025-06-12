@@ -38,6 +38,7 @@
 #include <string>
 #include <limits> // Eu preciso disso para o 'std::cin.ignore()' funcionar corretamente.
 #include <fstream> // usado para fazer a manipulacao de arquivos
+#include <memory> // Biblioteca para smart pointers
 
 using namespace std;
 
@@ -227,7 +228,7 @@ class Biblioteca
 private:
     // O coracao do polimorfismo: um vetor de ponteiros da classe base.
     // Ele pode guardar enderecos de Livros, Filmes ou qualquer outra classe que herde de ItemDeMidia.
-    vector<ItemDeMidia*> colecao;
+    std::vector<std::unique_ptr<ItemDeMidia>> colecao;
 
 public:
     // Construtor da Biblioteca.
@@ -241,46 +242,47 @@ public:
     ~Biblioteca()
     {
         std::cout << "\nLimpando a memoria da Biblioteca e encerrando o sistema..." << std::endl;
-        // Para cada ponteiro na minha colecao...
-        for (ItemDeMidia *itemPtr : colecao)
-        {
-            // ...eu chamo 'delete' para liberar a memoria do objeto na heap.
-            delete itemPtr;
+    }
+// Este metodo vai na sua classe Biblioteca, na secao public:
+
+void listarItens() {
+    cout << "\n===== ITENS NA BIBLIOTECA =====" << endl;
+
+    // Primeiro, verificamos se a colecao esta' vazia.
+    if (colecao.empty()) {
+        cout << "A biblioteca esta vazia." << endl;
+    } 
+    else {
+        int indice = 0;
+        // --- Loop para unique_ptr ---
+        // A sintaxe correta do loop: para cada REFERENCIA CONSTANTE para um
+        // unique_ptr na nossa colecao...
+        for (const unique_ptr<ItemDeMidia>& itemPtr : colecao) {
+            
+            // Mostramos o indice para o usuario (comecando em 1)
+            cout << "\n[" << indice + 1 << "]";
+            
+            // A chamada polimorfica continua a mesma, usando a seta ->
+            // para acessar o metodo do objeto gerenciado.
+            itemPtr->exibirDados();
+            
+            indice++;
         }
     }
-
+    cout << "\n===============================" << endl;
+}
     // Adiciona um novo item a colecao. Recebe um ponteiro para um ItemDeMidia.
-    void adicionarItem(ItemDeMidia *itemParaAdicionar)
+    // metodo atualizado para receber uniqueptr
+    void adicionarItem(unique_ptr<ItemDeMidia> itemParaAdicionar)
     {
-        colecao.push_back(itemParaAdicionar);
         std::cout << "Item \"" << itemParaAdicionar->getTitulo() << "\" adicionado a biblioteca." << std::endl;
+        // std::move transfere a "posse" do ponteiro para dentro do vetor.
+        // A variavel 'itemParaAdicionar' se torna nula depois disso.
+        colecao.push_back(std::move(itemParaAdicionar));
     }
 
     // Lista todos os itens da colecao de forma polimorfica.
-    void listarItens()
-    {
-        std::cout << "\n===== ITENS NA BIBLIOTECA =====" << std::endl;
-
-        // .empty() e um metodo do vetor que retorna 'true' se ele estiver vazio.
-        if (colecao.empty())
-        {
-            std::cout << "A biblioteca esta vazia." << std::endl;
-        }
-        else
-        {
-            int indice = 0;
-            // Para cada ponteiro 'itemPtr' na minha 'colecao'...
-            for (ItemDeMidia *itemPtr : colecao)
-            {
-                // ...eu chamo o metodo 'exibirDados'. A versao correta (de Livro ou Filme)
-                // sera executada automaticamente. Isso e' polimorfismo!
-                std::cout << "\n[" << indice + 1 << "]"; // Mostro um numero para o usuario.
-                itemPtr->exibirDados();
-                indice++;
-            }
-        }
-        std::cout << "===============================" << std::endl;
-    }
+    
 
     // Dentro da sua classe Biblioteca
 
@@ -293,7 +295,7 @@ public:
         bool encontrado = false;
 
         // 1. Percorremos TODA a colecao primeiro.
-        for (ItemDeMidia *itemPtr : colecao)
+        for (const unique_ptr<ItemDeMidia>& itemPtr : colecao)
         {
             // Se o titulo do item atual for igual ao que estamos buscando...
             if (itemPtr->getTitulo() == tituloParaBuscar)
@@ -329,7 +331,7 @@ public:
             std::cout << "Erro: Indice invalido." << std::endl;
             return; // Saio do metodo.
         }
-        ItemDeMidia *itemParaEmprestar = colecao[indice];
+         auto& itemParaEmprestar = colecao[indice];
 
         if (itemParaEmprestar->isEmprestado())
         {
@@ -356,7 +358,7 @@ public:
             return;
         }
 
-        ItemDeMidia *itemParaDevolver = colecao[indice];
+        auto& itemParaDevolver = colecao[indice];
 
         // --- LOGICA CORRIGIDA ---
 
@@ -390,7 +392,6 @@ public:
 
         // ORDEM CRUCIAL:
         // 1. Libero a memoria do objeto na heap.
-        delete colecao[indice];
         // 2. Removo o ponteiro (que agora aponta para memoria invalida) do vetor.
         colecao.erase(colecao.begin() + indice);
 
@@ -416,14 +417,14 @@ void salvarEmArquivo(const string& nomeArquivo) {
     cout << "\nSalvando dados da biblioteca em " << nomeArquivo << "..." << endl;
 
     // Para cada item na minha colecao...
-    for (ItemDeMidia* itemPtr : colecao) {
+    for (const unique_ptr<ItemDeMidia>& itemPtr : colecao) {
         // ...eu preciso descobrir qual e' o seu tipo real para salvar os dados corretos.
         // Para isso, eu uso o 'dynamic_cast'.
 
         // Eu tento "converter" o ponteiro generico para um ponteiro de Livro.
-        Livro* livroPtr = dynamic_cast<Livro*>(itemPtr);
-        Filme* filmePtr = dynamic_cast<Filme*>(itemPtr);
-        Revista* revistaPtr = dynamic_cast<Revista*>(itemPtr);
+        Livro* livroPtr = dynamic_cast<Livro*>(itemPtr.get());
+        Filme* filmePtr = dynamic_cast<Filme*>(itemPtr.get());
+        Revista* revistaPtr = dynamic_cast<Revista*>(itemPtr.get());
         // Adicione aqui um para Revista, se voce ja a criou
         // Revista* revistaPtr = dynamic_cast<Revista*>(itemPtr);
 
@@ -461,12 +462,10 @@ void salvarEmArquivo(const string& nomeArquivo) {
 
     void carregarDeArquivo(const string& nomeArquivo){
         // Limpa a colecao atual para nao duplicar itens se o metodo for chamado mais de uma vez
-    for (ItemDeMidia* itemPtr : colecao) {
-        delete itemPtr;
+    for (const unique_ptr<ItemDeMidia>& itemPtr : colecao) {
+          colecao.clear();
     }
-    colecao.clear(); // Esvazia o vetor
-
-        ifstream arquivo(nomeArquivo);
+         ifstream arquivo(nomeArquivo);
     if (!arquivo.is_open()) { /* ... */ return; }
 
     string linha, tipo;
@@ -499,9 +498,15 @@ void salvarEmArquivo(const string& nomeArquivo) {
                 emprestadoInt = stoi(linha);
             }
 
-            Livro* novoLivro = new Livro(titulo, ano, edicao, autor, paginas);
-            novoLivro->setEmprestado(emprestadoInt == 1);
-            colecao.push_back(novoLivro);
+ // 1. Crio o ponteiro inteligente DIRETAMENTE com make_unique.
+    // 'auto' descobre o tipo para mim (que sera' unique_ptr<Livro>).
+    auto novoLivroPtr = make_unique<Livro>(titulo, ano, edicao, autor, paginas);
+
+    // 2. Modifico o objeto atraves do smart pointer (funciona igual!).
+    novoLivroPtr->setEmprestado(emprestadoInt == 1);
+
+    // 3. MOVEMOS o ponteiro inteligente para dentro do vetor. Agora os tipos batem!
+    colecao.push_back(std::move(novoLivroPtr));
 
         } 
            else if (tipo == "FILME") {
@@ -515,9 +520,9 @@ void salvarEmArquivo(const string& nomeArquivo) {
             if (getline(arquivo, linha) && !linha.empty()) { duracao = stod(linha); } // stod para double
             if (getline(arquivo, linha) && !linha.empty()) { emprestadoInt = stoi(linha); }
 
-            Filme* novoFilme = new Filme(titulo, ano, diretor, duracao);
-            novoFilme->setEmprestado(emprestadoInt == 1);
-            colecao.push_back(novoFilme);
+            auto novoFilmePtr = make_unique<Filme>(titulo,ano,diretor,duracao);
+            novoFilmePtr->setEmprestado(emprestadoInt == 1);
+            colecao.push_back(std::move(novoFilmePtr));
         }
             else if (tipo == "REVISTA") {
                 string titulo, editora;
@@ -530,9 +535,10 @@ void salvarEmArquivo(const string& nomeArquivo) {
                 if (getline(arquivo, linha) && !linha.empty()) { emprestadoInt = stoi(linha); }
 
 
-                Revista* novaRevista = new Revista(titulo,ano,editora,edicao);
-                novaRevista->setEmprestado(emprestadoInt == 1);
-                colecao.push_back(novaRevista);
+                
+            auto novoFilmePtr = make_unique<Filme>(titulo,ano,editora,edicao);
+            novoFilmePtr->setEmprestado(emprestadoInt == 1);
+            colecao.push_back(std::move(novoFilmePtr));
             }
         }
         
@@ -609,7 +615,7 @@ int main()
             std::cin >> paginasG;
 
             // Crio o objeto na heap com 'new' e passo o ponteiro para a biblioteca.
-            minhaBiblioteca.adicionarItem(new Livro(tituloG, anoG, edicaoG, autorG, paginasG));
+            minhaBiblioteca.adicionarItem(make_unique<Livro>(tituloG, anoG, edicaoG, autorG, paginasG));
 
             break;
         }
@@ -634,7 +640,7 @@ int main()
             std::cin >> duracaohoras;
             duracaoG = duracaohoras * 60;
 
-            minhaBiblioteca.adicionarItem(new Filme(tituloG, anoG, diretorG, duracaoG));
+            minhaBiblioteca.adicionarItem(make_unique<Filme>(tituloG, anoG, diretorG, duracaoG));
 
             break;
         }
@@ -656,7 +662,7 @@ int main()
             std::cout << "Digite a edicao da Revista: ";
             std::cin >> edicaoG;
 
-            minhaBiblioteca.adicionarItem(new Revista(tituloG, anoG, editoraG, edicaoG));
+            minhaBiblioteca.adicionarItem(make_unique<Revista>(tituloG, anoG, editoraG, edicaoG));
 
             break;
         }
