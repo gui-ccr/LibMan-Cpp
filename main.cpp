@@ -1,6 +1,37 @@
-// =======================================================
-// ARQUIVO: main.cpp
-// =======================================================
+/*
+ * ===================================================================================
+ * Projeto Final: Sistema de Gerenciamento de Biblioteca de Mídia
+ * ===================================================================================
+ *
+ * O que eu apliquei neste projeto:
+ * - Classes e Objetos: Para modelar os conceitos de Midia, Livro, Filme e Biblioteca.
+ * - Encapsulamento: Protegi os dados com 'private'/'protected' e criei uma interface 'public'.
+ * - Heranca: Criei uma hierarquia onde Livro e Filme sao tipos de ItemDeMidia.
+ * - Polimorfismo: Usei um vetor de ponteiros da classe base para gerenciar objetos
+ * de diferentes classes filhas de forma uniforme, com metodos 'virtual'.
+ * - Classes Abstratas: Defini a classe ItemDeMidia como um "contrato" com uma
+ * funcao virtual pura ('= 0'), impedindo que ela seja instanciada.
+ * - std::vector: Para criar uma colecao dinamica de itens na biblioteca.
+ * - Ponteiros e Gerenciamento de Memoria Dinamica: Usei 'new' para criar objetos
+ * na memoria heap e 'delete' para libera-los, evitando vazamentos de memoria.
+ * - Destrutores Virtuais: Garanti que a memoria fosse limpa corretamente na hierarquia.
+ *
+ * -----------------------------------------------------------------------------------
+ * Passos da Criacao do Sistema:
+ * -----------------------------------------------------------------------------------
+ * Passo 1: Criei a estrutura das classes de midia (ItemDeMidia, Livro, Filme),
+ * definindo a hierarquia de heranca e o contrato com a classe abstrata.
+ *
+ * Passo 2: Implementei a classe gerenciadora 'Biblioteca', usando composicao para
+ * conter uma colecao polimorfica (um vetor de ponteiros da classe base).
+ *
+ * Passo 3: Refinei o gerenciamento de memoria, introduzindo 'new', 'delete' e
+ * destrutores para garantir que o sistema fosse robusto e sem vazamentos.
+ *
+ * Passo 4: Construi a interface do usuario no 'main', com um menu interativo
+ * que permitia adicionar, listar e deletar itens.
+ *
+ */
 
 // 1. Todos os includes devem ficar aqui no topo do arquivo.
 #include <iostream>
