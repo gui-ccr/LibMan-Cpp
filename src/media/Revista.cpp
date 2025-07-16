@@ -1,4 +1,4 @@
-#include "Revista.h"
+#include "../media/Revista.h"
 #include <iostream>
 
 using namespace std;

@@ -1,29 +1,33 @@
-# Define o nome do nosso programa final
-EXECUTAVEL = biblioteca
+# Define o compilador
+CXX = g++
+# Define as flags de compilacao
+CXXFLAGS = -std=c++17 -Wall
 
-# Define o compilador que vamos usar
-COMPILADOR = g++
+# Nome do seu programa executavel final
+TARGET = biblioteca
 
-# Define as flags de compilacao (padrao C++17, mostrar todos os warnings)
-FLAGS = -std=c++17 -Wall
+# Define os diretorios onde estao os arquivos fonte (.cpp)
+SRCDIRS = src/core src/media src/app
+# Adiciona os diretorios ao VPATH, que e' onde o 'make' procura por arquivos
+VPATH = $(SRCDIRS)
 
-# Lista de todos os seus arquivos de implementacao (.cpp)
-FONTES = main.cpp ItemDeMidia.cpp Livro.cpp Filme.cpp Revista.cpp Biblioteca.cpp
-
+# Encontra todos os arquivos .cpp dentro dos diretorios listados
+SOURCES = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 # Transforma a lista de .cpp em uma lista de .o (arquivos objeto)
-OBJETOS = $(FONTES:.cpp=.o)
+OBJECTS = $(SOURCES:.cpp=.o)
 
-# Regra principal: executada quando voce digita 'make'
-all: $(EXECUTAVEL)
+# Regra principal
+all: $(TARGET)
 
-# Regra para criar o programa final
-$(EXECUTAVEL): $(OBJETOS)
-	$(COMPILADOR) $(FLAGS) -o $(EXECUTAVEL) $(OBJETOS)
+# Regra para criar o programa final, juntando todos os arquivos objeto
+$(TARGET): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
 
-# Regra generica para criar um arquivo .o a partir de um .cpp
+# Regra generica para compilar um .cpp para um .o
+# O -Isrc/core, -Isrc/media, etc., diz ao compilador onde procurar pelos arquivos .h
 %.o: %.cpp
-	$(COMPILADOR) $(FLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -Isrc/core -Isrc/media -Isrc/app -c $< -o $@
 
-# Regra para limpar os arquivos gerados
+# Regra para limpar tudo
 clean:
-	rm -f $(EXECUTAVEL) $(OBJETOS)
+	rm -f $(TARGET) $(OBJECTS)

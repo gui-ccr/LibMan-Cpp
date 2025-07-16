@@ -1,0 +1,6 @@
+# Ignorar arquivos de objeto e executaveis gerados pela compilacao
+*.o
+*.exe
+
+# Voce tambem pode adicionar o nome do executavel diretamente
+bibliotecamake clean

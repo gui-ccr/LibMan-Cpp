@@ -1,6 +1,6 @@
 // 1. A primeira coisa que a "cozinha" faz e' incluir o "cardapio" para saber
 //    o que ela precisa preparar.
-#include "ItemDeMidia.h" 
+#include "../core/ItemDeMidia.h" 
 #include <iostream> // Incluimos iostream aqui porque usamos 'cout', etc.
 
 // Usamos o namespace std para facilitar.
