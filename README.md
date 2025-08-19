@@ -70,43 +70,43 @@ classDiagram
     class ItemDeMidia {
         <<Abstract>>
         -string titulo
-        -bool emprestado
+        -bool estaEmprestado
         +exibirDados()*
-        +salvarDados(ofstream& arquivo)*
         +isEmprestado() bool
+        +getTitulo() string
+        +setEmprestado(bool)
     }
 
     class Livro {
         -string autor
         +exibirDados()
-        +salvarDados(ofstream& arquivo)
+        +getAutor() string
     }
 
     class Filme {
         -string diretor
-        -int duracao
+        -double duracao
         +exibirDados()
-        +salvarDados(ofstream& arquivo)
+        +getDiretor() string
+        +getDuracao() double
     }
 
     class Revista {
-        -int edicao
+        -int numeroEdicao
         +exibirDados()
-        +salvarDados(ofstream& arquivo)
+        +getNumeroEdicao() int
     }
     
     class Biblioteca {
         -vector<unique_ptr<ItemDeMidia>> acervo
-        +adicionarItem()
-        +emprestarItem(string titulo)
-        +salvarParaArquivo()
+        +adicionarItem(unique_ptr<ItemDeMidia>)
+        +emprestarItem(int indice)
     }
 
     ItemDeMidia <|-- Livro
     ItemDeMidia <|-- Filme
     ItemDeMidia <|-- Revista
     Biblioteca o-- "1..*" ItemDeMidia : contém
-
 ```
 > **Nota:** O diagrama simplifica as classes para focar na arquitetura. A relação `Biblioteca o-- ItemDeMidia` indica uma **Composição** gerenciada por `unique_ptr`, onde a `Biblioteca` é "dona" dos itens e responsável por seu ciclo de vida.
 
